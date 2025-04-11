@@ -181,7 +181,7 @@ const LanguageChangeModal: React.FC<{
                         localStorage.removeItem('cjr-ide');
                         onLanguageSelect(selectedLanguage);
                         setIsOpen(false);
-                        router.push(`/virtual_labs/ide/?lang=${selectedLanguage}`);
+                        router.push(`/ide/?lang=${selectedLanguage}`);
                       }} 
                       className="bg-red-600 px-4 py-2 rounded-lg text-white"
                     >

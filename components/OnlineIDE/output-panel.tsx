@@ -17,6 +17,7 @@ interface OutputPanelProps {
   executionCount: number;
   formatTime: (seconds: number) => string;
   stopExecution: () => void;
+  sendInput: (input: string) => void;
 }
 
 const languageMap: Record<LanguageCode, { name: string }> = {
@@ -43,6 +44,7 @@ export function OutputPanel({
   executionCount,
   formatTime,
   stopExecution,
+  sendInput,
 }: OutputPanelProps) {
   const title = `Terminal (${languageMap[selectedLanguage]?.name || 'Unknown'})`;
 
@@ -63,6 +65,8 @@ export function OutputPanel({
         handleInlineInput={handleInlineInput}
         inputPrompt={inputPrompt}
         selectedLanguage={selectedLanguage}
+        isExecuting={isExecuting}
+        sendInput={sendInput}
       />
     </div>
   );

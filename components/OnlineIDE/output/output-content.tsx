@@ -10,40 +10,76 @@ interface OutputContentProps {
   handleInlineInput: (e: React.FormEvent) => void;
   inputPrompt: string | null;
   selectedLanguage: LanguageCode;
+  isExecuting: boolean;
+  sendInput: (input: string) => void;
 }
 
-export function OutputContent({ content, outputRef, handleInlineInput, inputPrompt, selectedLanguage }: OutputContentProps) {
+export function OutputContent({
+  content,
+  outputRef,
+  handleInlineInput,
+  inputPrompt,
+  selectedLanguage,
+  isExecuting,
+  sendInput,
+}: OutputContentProps) {
   const showInput = [0, 1, 2, 4, 63, 68, 71, 74].includes(selectedLanguage);
 
   useEffect(() => {
-    if (inputPrompt && outputRef.current) {
-      const inputElement = outputRef.current?.querySelector('input[name="inline-input"]') as HTMLInputElement | null;
-if (inputElement) {
-  inputElement.focus();
-}
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
-  }, [inputPrompt, outputRef]);
+  }, [content, outputRef]);
+
+  const handleInputSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const inputElement = (e.target as HTMLFormElement).elements.namedItem('program-input') as HTMLInputElement;
+    const value = inputElement.value.trim();
+    if (value && sendInput) {
+      sendInput(value);
+      inputElement.value = '';
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const inputElement = e.target as HTMLInputElement;
+      const value = inputElement.value.trim();
+      if (value && sendInput) {
+        sendInput(value);
+        inputElement.value = '';
+      }
+    }
+  };
 
   return (
-    <div className="h-[calc(100%-3.5rem)] overflow-y-auto scrollbar-custom">
-      {showInput ? (
+    <div className="h-[calc(100%-3.5rem)] flex flex-col overflow-hidden">
+      <div className="flex-grow overflow-y-auto">
         <pre ref={outputRef} className="whitespace-pre-wrap break-words p-4 font-mono text-sm">
           {content}
-          {inputPrompt && (
-            <form onSubmit={handleInlineInput} className="mt-1 flex flex-wrap items-start justify-start">
-              <input
-                name="inline-input"
-                type="text"
-                id="inline-input"
-                className="border-none bg-transparent py-0 text-black focus:outline-none w-full"
-                autoFocus
-                placeholder={"input"}
-              />
-            </form>
-          )}
         </pre>
-      ) : (
-        <pre ref={outputRef} className="whitespace-pre-wrap break-words p-4 text-sm" dangerouslySetInnerHTML={{ __html: content }} />
+      </div>
+      {showInput && (isExecuting || inputPrompt) && (
+        <form onSubmit={handleInputSubmit} className="p-2 border-t border-gray-500/30">
+          <div className="flex gap-2">
+            <input
+              name="program-input"
+              type="text"
+              id="program-input"
+              className="flex-grow border-none bg-transparent py-1 text-black focus:outline-none"
+              autoFocus
+              placeholder="Enter input for the program..."
+              onKeyDown={handleKeyPress}
+            />
+            <button
+              type="submit"
+              className="px-2 py-1 bg-gray-200 text-black rounded hover:bg-gray-300"
+            >
+              Send
+            </button>
+          </div>
+        </form>
       )}
     </div>
   );

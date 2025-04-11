@@ -3,7 +3,7 @@ import { OutputPanel } from '@/components/OnlineIDE/output-panel';
 import { InputPanel } from '@/components/OnlineIDE/input-panel';
 import { showToast } from '@/components/ShowToast';
 import { LanguageCode, ProjectData } from '@/types/ide';
-import { RefObject, SetStateAction, Suspense, useEffect, useRef, useState } from 'react';
+import { RefObject, Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import SidebarEditor from '@/components/OnlineIDE/SidebarEditor';
 
@@ -40,15 +40,12 @@ const defaultCode = {
 };
 
 export default function Home() {
-
   let url = "ws://216.48.180.96:8888/ws/v1/compiler1"; //in env
 
   const [inputValues, setInputValues] = useState('');
   const [output, setOutput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [inputPrompt, setInputPrompt] = useState<string | null>(null);
-  const [inputValue, setInputValue] = useState('');
-  const [resolveInput, setResolveInput] = useState<((value: string) => void) | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
   const [isPyodideLoading, setIsPyodideLoading] = useState(true);
@@ -113,6 +110,7 @@ export default function Home() {
 
     ws.onmessage = (event) => {
       const message = event.data;
+      console.log("MSG: ", message);
       if (message.startsWith(MESSAGE_TYPE.CONTAINER_ID)) {
         const id = message.replace(MESSAGE_TYPE.CONTAINER_ID, '');
         setContainerId(id);
@@ -131,14 +129,6 @@ export default function Home() {
         if (isInputPrompt) {
           setOutput((prev) => prev + message.trimEnd());
           setInputPrompt(message.trim());
-          setResolveInput(() => (inputValue: string) => {
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(inputValue + '\n');
-              addMessage(inputValue);
-              setInputPrompt(null);
-              setResolveInput(null);
-            }
-          });
         } else {
           addMessage(message);
         }
@@ -154,11 +144,18 @@ export default function Home() {
 
     ws.onclose = () => {
       console.log('WebSocket closed');
-      //addMessage('Disconnected');
       stopExecution();
     };
 
     setCppSocket(ws);
+  };
+
+  const sendInput = (input: string) => {
+    if (cppSocket && cppSocket.readyState === WebSocket.OPEN) {
+      cppSocket.send(input + '\n');
+      addMessage(input); // Echo input to output
+      setInputPrompt(null); // Clear prompt after sending
+    }
   };
 
   const startExecution = () => {
@@ -177,6 +174,7 @@ export default function Home() {
       console.log('Sent STOP command');
     }
     setIsExecuting(false);
+    setInputPrompt(null); // Clear input prompt on stop
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -208,7 +206,7 @@ export default function Home() {
     if (outputRef.current) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
-  }, [output, inputPrompt]);
+  }, [output]);
 
   const socketRun = () => {
     if (!cppSocket || cppSocket.readyState !== WebSocket.OPEN) {
@@ -245,57 +243,48 @@ export default function Home() {
     setTimeout(() => setIsExecuting(false), 1000);
   };
 
-  const handleInlineInput = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (resolveInput) {
-      const inputElement = (e.target as HTMLFormElement).elements.namedItem('inline-input') as HTMLInputElement;
-      resolveInput(inputElement.value);
-      inputElement.value = '';
-    }
-  };
-
   const showInput = [0, 1, 2, 4, 63, 68, 71, 74].includes(selectedLanguage);
 
   if (!isClient) return null;
 
   return (
     <Suspense fallback={<div>Loading IDE...</div>}>
-    <div className="min-h-screen w-full">
-      <div className="flex h-screen flex-col divide-gray-500/30 overflow-hidden md:flex-row">
-        <div className="h-[40vh] w-full flex-shrink-0 md:h-full md:w-[69.7%]">
-          <SidebarEditor
-            onClear={() => setOutput('')}
-            isExecuting={isExecuting}
-            loading={loading}
-            selectedLanguage={selectedLanguage}
-            setSelectedLanguage={setSelectedLanguage}
-            run={run}
-            setCode={setCode}
-            code={code}
-            projectData={projectData}
-            setProjectData={setProjectData}
-            stopExecution={stopExecution}
-          />
-        </div>
-        <div className="resizer !bg-gray-500/30" id="dragMe"></div>
-        <div className="flex h-[60vh] w-full flex-shrink-0 flex-col md:h-full md:w-[30%]">
-          {!showInput && <InputPanel inputValues={inputValues} setInputValues={setInputValues} selectedLanguage={selectedLanguage} />}
-          <OutputPanel
-            output={output}
-            onClear={() => setOutput('')}
-            outputRef={outputRef}
-            handleInlineInput={handleInlineInput}
-            inputPrompt={inputPrompt}
-            selectedLanguage={selectedLanguage}
-            isExecuting={isExecuting}
-            executionTime={executionTime}
-            executionCount={executionCount}
-            formatTime={formatTime}
-            stopExecution={stopExecution}
-          />
+      <div className="min-h-screen w-full">
+        <div className="flex h-screen flex-col divide-gray-500/30 overflow-hidden md:flex-row">
+          <div className="h-[40vh] w-full flex-shrink-0 md:h-full md:w-[69.7%]">
+            <SidebarEditor
+              onClear={() => setOutput('')}
+              isExecuting={isExecuting}
+              loading={loading}
+              selectedLanguage={selectedLanguage}
+              setSelectedLanguage={setSelectedLanguage}
+              run={run}
+              setCode={setCode}
+              code={code}
+              projectData={projectData}
+              setProjectData={setProjectData}
+              stopExecution={stopExecution}
+            />
+          </div>
+          <div className="resizer !bg-gray-500/30" id="dragMe"></div>
+          <div className="flex h-[60vh] w-full flex-shrink-0 flex-col md:h-full md:w-[30%]">
+            <OutputPanel
+              output={output}
+              onClear={() => setOutput('')}
+              outputRef={outputRef}
+              handleInlineInput={() => {}}
+              inputPrompt={inputPrompt}
+              selectedLanguage={selectedLanguage}
+              isExecuting={isExecuting}
+              executionTime={executionTime}
+              executionCount={executionCount}
+              formatTime={formatTime}
+              stopExecution={stopExecution}
+              sendInput={sendInput}
+            />
+          </div>
         </div>
       </div>
-    </div>
-  </Suspense>
+    </Suspense>
   );
 }
