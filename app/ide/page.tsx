@@ -39,7 +39,7 @@ const defaultCode = {
   4: "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello Everyone\");\n    }\n}"
 };
 
-export default function Home() {
+export default function Ide() {
 
   let url = "ws://216.48.180.96:8888/ws/v1/compiler1"; //in env
 
@@ -47,21 +47,18 @@ export default function Home() {
   const [output, setOutput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [inputPrompt, setInputPrompt] = useState<string | null>(null);
-  const [inputValue, setInputValue] = useState('');
   const [resolveInput, setResolveInput] = useState<((value: string) => void) | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
-  const [isPyodideLoading, setIsPyodideLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [cppSocket, setCppSocket] = useState<WebSocket | null>(null);
   const [isCppConnected, setIsCppConnected] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(0);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(1);
   const [containerId, setContainerId] = useState<string | null>(null);
   const [executionTime, setExecutionTime] = useState(0);
   const [executionCount, setExecutionCount] = useState(0);
   const [code, setCode] = useState('');
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const outputRef = useRef(null) as unknown as RefObject<HTMLPreElement>;
 
@@ -260,42 +257,42 @@ export default function Home() {
 
   return (
     <Suspense fallback={<div>Loading IDE...</div>}>
-    <div className="min-h-screen w-full">
-      <div className="flex h-screen flex-col divide-gray-500/30 overflow-hidden md:flex-row">
-        <div className="h-[40vh] w-full flex-shrink-0 md:h-full md:w-[69.7%]">
-          <SidebarEditor
-            onClear={() => setOutput('')}
-            isExecuting={isExecuting}
-            loading={loading}
-            selectedLanguage={selectedLanguage}
-            setSelectedLanguage={setSelectedLanguage}
-            run={run}
-            setCode={setCode}
-            code={code}
-            projectData={projectData}
-            setProjectData={setProjectData}
-            stopExecution={stopExecution}
-          />
-        </div>
-        <div className="resizer !bg-gray-500/30" id="dragMe"></div>
-        <div className="flex h-[60vh] w-full flex-shrink-0 flex-col md:h-full md:w-[30%]">
-          {!showInput && <InputPanel inputValues={inputValues} setInputValues={setInputValues} selectedLanguage={selectedLanguage} />}
-          <OutputPanel
-            output={output}
-            onClear={() => setOutput('')}
-            outputRef={outputRef}
-            handleInlineInput={handleInlineInput}
-            inputPrompt={inputPrompt}
-            selectedLanguage={selectedLanguage}
-            isExecuting={isExecuting}
-            executionTime={executionTime}
-            executionCount={executionCount}
-            formatTime={formatTime}
-            stopExecution={stopExecution}
-          />
+      <div className="w-full min-h-screen">
+        <div className="flex md:flex-row flex-col divide-gray-500/30 h-screen overflow-hidden">
+          <div className="flex-shrink-0 w-full md:w-[69.7%] h-[40vh] md:h-full">
+            <SidebarEditor
+              onClear={() => setOutput('')}
+              isExecuting={isExecuting}
+              loading={loading}
+              selectedLanguage={selectedLanguage}
+              setSelectedLanguage={setSelectedLanguage}
+              run={run}
+              setCode={setCode}
+              code={code}
+              projectData={projectData}
+              setProjectData={setProjectData}
+              stopExecution={stopExecution}
+            />
+          </div>
+          <div className="!bg-gray-500/30 resizer" id="dragMe"></div>
+          <div className="flex flex-col flex-shrink-0 w-full md:w-[30%] h-[60vh] md:h-full">
+            {!showInput && <InputPanel inputValues={inputValues} setInputValues={setInputValues} selectedLanguage={selectedLanguage} />}
+            <OutputPanel
+              output={output}
+              onClear={() => setOutput('')}
+              outputRef={outputRef}
+              handleInlineInput={handleInlineInput}
+              inputPrompt={inputPrompt}
+              selectedLanguage={selectedLanguage}
+              isExecuting={isExecuting}
+              executionTime={executionTime}
+              executionCount={executionCount}
+              formatTime={formatTime}
+              stopExecution={stopExecution}
+            />
+          </div>
         </div>
       </div>
-    </div>
-  </Suspense>
+    </Suspense>
   );
 }
