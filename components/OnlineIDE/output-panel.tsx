@@ -9,7 +9,7 @@ interface OutputPanelProps {
   output: string;
   onClear: () => void;
   outputRef: RefObject<HTMLPreElement>;
-  handleInlineInput: (e: React.FormEvent) => void;
+  handleInlineInput: (e: React.FormEvent) => void; // Kept for compatibility
   inputPrompt: string | null;
   selectedLanguage: LanguageCode;
   isExecuting: boolean;

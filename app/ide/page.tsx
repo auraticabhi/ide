@@ -4,7 +4,7 @@ import { InputPanel } from '@/components/OnlineIDE/input-panel';
 import { showToast } from '@/components/ShowToast';
 import { LanguageCode, ProjectData } from '@/types/ide';
 import { RefObject, Suspense, useEffect, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import SidebarEditor from '@/components/OnlineIDE/SidebarEditor';
 
 const MESSAGE_TYPE = {
@@ -39,7 +39,7 @@ const defaultCode = {
   4: "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello Everyone\");\n    }\n}"
 };
 
-export default function Home() {
+export default function Ide() {
   let url = "ws://216.48.180.96:8888/ws/v1/compiler1"; //in env
 
   const [inputValues, setInputValues] = useState('');
@@ -48,17 +48,15 @@ export default function Home() {
   const [inputPrompt, setInputPrompt] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
-  const [isPyodideLoading, setIsPyodideLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [cppSocket, setCppSocket] = useState<WebSocket | null>(null);
   const [isCppConnected, setIsCppConnected] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(0);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(1);
   const [containerId, setContainerId] = useState<string | null>(null);
   const [executionTime, setExecutionTime] = useState(0);
   const [executionCount, setExecutionCount] = useState(0);
   const [code, setCode] = useState('');
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const outputRef = useRef(null) as unknown as RefObject<HTMLPreElement>;
 
@@ -225,22 +223,10 @@ export default function Home() {
   const run = () => {
     const langConfig = languageMap[selectedLanguage as keyof typeof languageMap];
     if (langConfig) {
-      if ([1, 2, 4, 63, 68, 71, 74].includes(selectedLanguage)) {
-        socketRun();
-      } else if (selectedLanguage === 72) {
-        pythonMLRun();
-      } else {
-        showToast('danger', 'Unsupported language');
-      }
+      socketRun();
     } else {
       showToast('danger', 'Please select a valid language');
     }
-  };
-
-  const pythonMLRun = async () => {
-    setIsExecuting(true);
-    addMessage('Python ML execution not fully implemented');
-    setTimeout(() => setIsExecuting(false), 1000);
   };
 
   const showInput = [0, 1, 2, 4, 63, 68, 71, 74].includes(selectedLanguage);
@@ -249,9 +235,9 @@ export default function Home() {
 
   return (
     <Suspense fallback={<div>Loading IDE...</div>}>
-      <div className="min-h-screen w-full">
-        <div className="flex h-screen flex-col divide-gray-500/30 overflow-hidden md:flex-row">
-          <div className="h-[40vh] w-full flex-shrink-0 md:h-full md:w-[69.7%]">
+      <div className="w-full min-h-screen">
+        <div className="flex md:flex-row flex-col divide-gray-500/30 h-screen overflow-hidden">
+          <div className="flex-shrink-0 w-full md:w-[69.7%] h-[40vh] md:h-full">
             <SidebarEditor
               onClear={() => setOutput('')}
               isExecuting={isExecuting}
@@ -266,13 +252,14 @@ export default function Home() {
               stopExecution={stopExecution}
             />
           </div>
-          <div className="resizer !bg-gray-500/30" id="dragMe"></div>
-          <div className="flex h-[60vh] w-full flex-shrink-0 flex-col md:h-full md:w-[30%]">
+          <div className="!bg-gray-500/30 resizer" id="dragMe"></div>
+          <div className="flex flex-col flex-shrink-0 w-full md:w-[30%] h-[60vh] md:h-full">
+            {!showInput && <InputPanel inputValues={inputValues} setInputValues={setInputValues} selectedLanguage={selectedLanguage} />}
             <OutputPanel
               output={output}
               onClear={() => setOutput('')}
               outputRef={outputRef}
-              handleInlineInput={() => {}}
+              handleInlineInput={() => {}} // Stub for compatibility
               inputPrompt={inputPrompt}
               selectedLanguage={selectedLanguage}
               isExecuting={isExecuting}
@@ -280,7 +267,7 @@ export default function Home() {
               executionCount={executionCount}
               formatTime={formatTime}
               stopExecution={stopExecution}
-              sendInput={sendInput}
+              sendInput={sendInput} // Add sendInput prop
             />
           </div>
         </div>
