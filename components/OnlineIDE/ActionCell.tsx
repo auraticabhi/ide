@@ -80,11 +80,8 @@ const ActionCell: React.FC<ActionCellProps> = ({
                     onClick={(e) => {
                         e.stopPropagation();
                         setIsProjectsOpen(false);
-                        if (localStorage.getItem('cjr-ide')) {
-                            setIsWarningModalOpen(true);
-                        } else {
-                            router.push(`/virtual_labs/ide/?lang=${selectedLanguage}`);
-                        }
+                        
+                            router.push(`/ide/?lang=${selectedLanguage}`);
                     }}
                 >
                     <IconPlus className='w-5' />

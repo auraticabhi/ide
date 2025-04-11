@@ -60,7 +60,7 @@ export function CodeEditor({ loading, language, onRunCode , setCode , code}: Cod
   // }, [language]);
 
   const saveCode = (value : string) => {
-    localStorage.setItem("cjr-ide" , value);
+    console.log("ola");
 
   }
   const debouncedSave = useCallback(
