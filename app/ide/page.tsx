@@ -3,8 +3,8 @@ import { OutputPanel } from '@/components/OnlineIDE/output-panel';
 import { InputPanel } from '@/components/OnlineIDE/input-panel';
 import { showToast } from '@/components/ShowToast';
 import { LanguageCode, ProjectData } from '@/types/ide';
-import { RefObject, SetStateAction, Suspense, useEffect, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { RefObject, Suspense, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import SidebarEditor from '@/components/OnlineIDE/SidebarEditor';
 
 const MESSAGE_TYPE = {
@@ -224,22 +224,10 @@ export default function Ide() {
   const run = () => {
     const langConfig = languageMap[selectedLanguage as keyof typeof languageMap];
     if (langConfig) {
-      if ([1, 2, 4, 63, 68, 71, 74].includes(selectedLanguage)) {
-        socketRun();
-      } else if (selectedLanguage === 72) {
-        pythonMLRun();
-      } else {
-        showToast('danger', 'Unsupported language');
-      }
+      socketRun();
     } else {
       showToast('danger', 'Please select a valid language');
     }
-  };
-
-  const pythonMLRun = async () => {
-    setIsExecuting(true);
-    addMessage('Python ML execution not fully implemented');
-    setTimeout(() => setIsExecuting(false), 1000);
   };
 
   const handleInlineInput = (e: React.FormEvent) => {
