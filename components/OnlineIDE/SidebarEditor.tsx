@@ -1,4 +1,5 @@
-import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+'use client';
+import React, { Dispatch, SetStateAction, Suspense, useEffect, useRef, useState } from 'react';
 import { LanguageSidebar } from './language-sidebar';
 import { CodeEditor } from './code-editor';
 import { LanguageCode, ProjectData } from '@/types/ide';
@@ -63,6 +64,7 @@ const SidebarEditor = ({ isExecuting, loading, selectedLanguage, setSelectedLang
 
   return (
     <>
+    <Suspense fallback={<div>Loading IDE...</div>}>
       <div className="bg-muted/50 flex h-14 w-full items-center justify-between border-b border-gray-500/30 px-1 md:pl-2 md:pr-5">
         <div className="divide-x-1 flex items-center space-x-8">
           <a href="/">
@@ -173,6 +175,7 @@ const SidebarEditor = ({ isExecuting, loading, selectedLanguage, setSelectedLang
           selectedLanguage={selectedLanguage} 
         />
       )}
+      </Suspense>
     </>
   );
 };

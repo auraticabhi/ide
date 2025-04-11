@@ -1,6 +1,7 @@
+'use client';
 import { LanguageCode } from '@/types/ide';
 import { useRouter, useSearchParams } from 'next/navigation'; // Updated imports for App Router
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, Suspense, useEffect, useRef, useState } from 'react';
 import IconPlus from '../icons/IconPlus';
 import IconSave from '../icons/IconSave';
 import IconList from '../icons/IconList';
@@ -9,7 +10,7 @@ import IconHelpCircle from '../icons/IconHelpCircle';
 type ActionCellProps = {
     isProjectsOpen: boolean;
     setIsProjectsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    buttonRef: React.RefObject<HTMLButtonElement>;
+    buttonRef: React.RefObject<HTMLButtonElement | null>;
     selectedLanguage: LanguageCode;
     openProjectsModal: () => void;
     setCode: Dispatch<SetStateAction<string>>;
@@ -69,6 +70,7 @@ const ActionCell: React.FC<ActionCellProps> = ({
 
     return (
         isProjectsOpen && (
+            <Suspense fallback={<div>Loading IDE...</div>}>
             <div 
                 ref={dialogRef} 
                 className="absolute right-0 top-[110%] z-10 w-28 flex-col items-start justify-start rounded-md border bg-white"
@@ -120,6 +122,7 @@ const ActionCell: React.FC<ActionCellProps> = ({
                     </button>
                 )}
             </div>
+            </Suspense>
         )
     );
 };

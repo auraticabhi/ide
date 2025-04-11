@@ -1,6 +1,7 @@
+'use client';
 import { LanguageCode } from '@/types/ide';
 import { useRouter, useSearchParams } from 'next/navigation'; // Updated imports for App Router
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, Suspense, useEffect, useRef, useState } from 'react';
 import IconPlus from '../icons/IconPlus';
 import IconSave from '../icons/IconSave';
 import IconList from '../icons/IconList';
@@ -11,7 +12,7 @@ type ActionCellProps = {
     setIsProjectsOpen: React.Dispatch<React.SetStateAction<boolean>>;
     isExampleModalOpen: boolean;
     setExampleModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    buttonRef: React.RefObject<HTMLButtonElement>;
+    buttonRef: React.RefObject<HTMLButtonElement | null>;
     selectedLanguage: LanguageCode;
     openProjectsModal: () => void;
     setCode: Dispatch<SetStateAction<string>>;
@@ -44,6 +45,7 @@ const Tools: React.FC<ActionCellProps> = ({
     const id = searchParams.get('id');
 
     return (
+        <Suspense fallback={<div>Loading IDE...</div>}>
         <div className='hidden xl:flex gap-2 justify-center items-center'>
             {selectedLanguage === 72 && (
                 <button 
@@ -62,7 +64,7 @@ const Tools: React.FC<ActionCellProps> = ({
                     if (localStorage.getItem('cjr-ide')) {
                         setIsWarningModalOpen(true);
                     } else {
-                        router.push(`/virtual_labs/ide/?lang=${selectedLanguage}`).then(() => window.location.reload());
+                        router.push(`/virtual_labs/ide/?lang=${selectedLanguage}`);
                     }
                 }}
             >
@@ -92,6 +94,7 @@ const Tools: React.FC<ActionCellProps> = ({
                 List
             </button>
         </div>
+        </Suspense>
     );
 };
 

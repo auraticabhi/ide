@@ -3,7 +3,7 @@ import { OutputPanel } from '@/components/OnlineIDE/output-panel';
 import { InputPanel } from '@/components/OnlineIDE/input-panel';
 import { showToast } from '@/components/ShowToast';
 import { LanguageCode, ProjectData } from '@/types/ide';
-import { SetStateAction, useEffect, useRef, useState } from 'react';
+import { RefObject, SetStateAction, Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import SidebarEditor from '@/components/OnlineIDE/SidebarEditor';
 
@@ -63,7 +63,7 @@ export default function Home() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const outputRef = useRef<HTMLPreElement>(null);
+  const outputRef = useRef(null) as unknown as RefObject<HTMLPreElement>;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -259,6 +259,7 @@ export default function Home() {
   if (!isClient) return null;
 
   return (
+    <Suspense fallback={<div>Loading IDE...</div>}>
     <div className="min-h-screen w-full">
       <div className="flex h-screen flex-col divide-gray-500/30 overflow-hidden md:flex-row">
         <div className="h-[40vh] w-full flex-shrink-0 md:h-full md:w-[69.7%]">
@@ -295,5 +296,6 @@ export default function Home() {
         </div>
       </div>
     </div>
+  </Suspense>
   );
 }

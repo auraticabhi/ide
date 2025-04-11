@@ -17,10 +17,10 @@ export function OutputContent({ content, outputRef, handleInlineInput, inputProm
 
   useEffect(() => {
     if (inputPrompt && outputRef.current) {
-      const inputElement = outputRef.current.querySelector('input[name="inline-input"]');
-      if (inputElement) {
-        inputElement.focus();
-      }
+      const inputElement = outputRef.current?.querySelector('input[name="inline-input"]') as HTMLInputElement | null;
+if (inputElement) {
+  inputElement.focus();
+}
     }
   }, [inputPrompt, outputRef]);
 

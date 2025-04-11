@@ -5,7 +5,7 @@ import IconX from '../icons/IconX';
 import IconMenu from '../icons/IconMenu';
 import { Dialog, Transition } from '@headlessui/react';
 import { useRouter, useSearchParams } from 'next/navigation'; // Updated imports for App Router
-import { useState, Fragment } from 'react';
+import { useState, Fragment, Suspense } from 'react';
 
 interface LanguageSidebarProps {
   onClear: () => void;
@@ -143,6 +143,7 @@ const LanguageChangeModal: React.FC<{
   const id = searchParams.get('id'); // Access 'id' from query params
 
   return (
+    <Suspense fallback={<div>Loading IDE...</div>}>
     <div onClick={() => setIsOpen(true)}>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" open={isOpen} onClose={() => setIsOpen(false)}>
@@ -180,7 +181,7 @@ const LanguageChangeModal: React.FC<{
                         localStorage.removeItem('cjr-ide');
                         onLanguageSelect(selectedLanguage);
                         setIsOpen(false);
-                        router.push(`/virtual_labs/ide/?lang=${selectedLanguage}`).then(() => window.location.reload());
+                        router.push(`/virtual_labs/ide/?lang=${selectedLanguage}`);
                       }} 
                       className="bg-red-600 px-4 py-2 rounded-lg text-white"
                     >
@@ -203,5 +204,6 @@ const LanguageChangeModal: React.FC<{
         </Dialog>
       </Transition>
     </div>
+    </Suspense>
   );
 };
