@@ -1,7 +1,6 @@
-import Ide from "./ide/page";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <Ide />
-  );
+  redirect("/ide?lang=1");
+  return null;
 }
