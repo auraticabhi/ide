@@ -40,7 +40,7 @@ const defaultCode = {
 };
 
 export default function Ide() {
-  let url = "ws://216.48.180.96:8888/ws/v1/compiler1"; //in env
+  let url = "ws://127.0.0.1:8800/ws/v1/compiler1"; //in env
 
   const [inputValues, setInputValues] = useState('');
   const [output, setOutput] = useState('');
