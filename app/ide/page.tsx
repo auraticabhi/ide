@@ -40,7 +40,9 @@ const defaultCode = {
 };
 
 export default function Ide() {
-  let url = "ws://127.0.0.1:8800/ws/v1/compiler1"; //in env
+  // let url = "ws://127.0.0.1:8800/ws/v1/compiler1"; //in env
+  let url = "ws://216.48.180.96:8888/ws/v1/compiler1"; //in env
+
 
   const [inputValues, setInputValues] = useState('');
   const [output, setOutput] = useState('');
@@ -108,10 +110,22 @@ export default function Ide() {
       console.log('WebSocket connected');
     };
 
+    ws.binaryType = 'arraybuffer';
     ws.onmessage = (event) => {
-      const rawMessage = event.data;
+      let rawMessage: string;
+
+      if (event.data instanceof ArrayBuffer) {
+        const decoder = new TextDecoder("utf-8");
+        rawMessage = decoder.decode(event.data);
+      } else {
+        rawMessage = event.data; // fallback if somehow it's still string
+      }
+
+      console.log("incoming data", rawMessage);
+
       const message = cleanOutput(rawMessage);
-    
+
+
       if (message.startsWith(MESSAGE_TYPE.CONTAINER_ID)) {
         const id = message.replace(MESSAGE_TYPE.CONTAINER_ID, '');
         setContainerId(id);
@@ -138,6 +152,8 @@ export default function Ide() {
 
     ws.onerror = (error) => {
       const errorMsg = `Error: ${error}`;
+      console.log(error);
+
       console.error(errorMsg);
       addMessage(errorMsg);
       stopExecution();
@@ -211,7 +227,7 @@ export default function Ide() {
           console.log('Execution in progress. Skipping reconnect.');
         }
       }, 8 * 60 * 1000); // 8 minutes
-      
+
       return () => clearInterval(interval);
     }
   }, [searchParams]);
@@ -275,7 +291,7 @@ export default function Ide() {
               output={output}
               onClear={() => setOutput('')}
               outputRef={outputRef}
-              handleInlineInput={() => {}} // Stub for compatibility
+              handleInlineInput={() => { }} // Stub for compatibility
               inputPrompt={inputPrompt}
               selectedLanguage={selectedLanguage}
               isExecuting={isExecuting}
