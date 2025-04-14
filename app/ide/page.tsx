@@ -68,14 +68,16 @@ export default function Ide() {
 
   const cleanOutput = (text: string) => {
     return text
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Remove control characters
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+      .replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '')
       .trim();
   };
 
   const addMessage = (text: string) => {
-    const cleanedText = cleanOutput(text);
-    if (cleanedText) {
-      setOutput((prev) => prev + cleanedText + '\n');
+    // const cleanedText = cleanOutput(text);
+    // console.log("CT: ", cleanedText);
+    if (text) {
+      setOutput((prev) => prev + text + '\n');
     }
   };
 
@@ -107,8 +109,9 @@ export default function Ide() {
     };
 
     ws.onmessage = (event) => {
-      const message = event.data;
-      console.log("MSG: ", message);
+      const rawMessage = event.data;
+      const message = cleanOutput(rawMessage);
+    
       if (message.startsWith(MESSAGE_TYPE.CONTAINER_ID)) {
         const id = message.replace(MESSAGE_TYPE.CONTAINER_ID, '');
         setContainerId(id);
@@ -117,7 +120,7 @@ export default function Ide() {
         addMessage(message);
         stopExecution();
       } else if (message === MESSAGE_TYPE.EXEC_TERMINATED) {
-        addMessage(`Program execution completed, Time: ${formatTime(executionTime)}`);
+        addMessage(`\nProgram execution completed, Time: ${formatTime(executionTime)}`);
         stopExecution();
       } else if (message === MESSAGE_TYPE.EXEC_TIMEOUT) {
         addMessage('Program execution timed out');
@@ -128,7 +131,7 @@ export default function Ide() {
           setOutput((prev) => prev + message.trimEnd());
           setInputPrompt(message.trim());
         } else {
-          addMessage(message);
+          addMessage(message); // Ensure all other messages are cleaned
         }
       }
     };
@@ -197,6 +200,19 @@ export default function Ide() {
       setSelectedLanguage(langCode);
       setCode(defaultCode[langCode] || '');
       setLoading(false);
+      const interval = setInterval(() => {
+        if (!isExecuting) {
+          const langConfig = languageMap[selectedLanguage as keyof typeof languageMap];
+          if (langConfig) {
+            console.log('Reconnecting WebSocket');
+            connectWebSocket(langConfig.socketType);
+          }
+        } else {
+          console.log('Execution in progress. Skipping reconnect.');
+        }
+      }, 8 * 60 * 1000); // 8 minutes
+      
+      return () => clearInterval(interval);
     }
   }, [searchParams]);
 
